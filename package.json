@@ -18,7 +18,10 @@
   "author": "Alexander Olofsson <alexander.olofsson@liu.se>",
   "license": "MIT",
   "dependencies": {
+    "body-parser": "^1.16.0",
+    "cookie-parser": "^1.4.3",
     "express": "^4.14.0",
+    "express-session": "^1.14.2",
     "gitlab": "^1.7.1",
     "http-proxy-middleware": "^0.17.3",
     "passport": "^0.3.2",
