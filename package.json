@@ -1,0 +1,27 @@
+{
+  "name": "gitlab-noide",
+  "version": "1.0.0",
+  "description": "Wrap NoIDE instances in containers from GitLab projects",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.it.liu.se/aleol57/gitlab-noide.git"
+  },
+  "keywords": [
+    "noide",
+    "express",
+    "gitlab"
+  ],
+  "author": "Alexander Olofsson <alexander.olofsson@liu.se>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.14.0",
+    "gitlab": "^1.7.1",
+    "http-proxy-middleware": "^0.17.3",
+    "passport": "^0.3.2",
+    "passport-gitlab2": "^2.2.0"
+  }
+}
