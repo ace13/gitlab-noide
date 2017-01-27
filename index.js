@@ -10,6 +10,9 @@ var b = browserify({
     packageCache: {},
     plugin: [watchify]
 });
+b.transform({
+    global: true
+},'uglifyify');
 
 b.on('update', bundle);
 bundle();
