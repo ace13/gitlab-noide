@@ -1,0 +1,25 @@
+
+.navbar-top {
+    min-height: 30px;
+}
+.navbar-top .navbar-brand {
+    padding: 5px;
+    height: 30px;
+}
+
+body {
+    padding-top: 45px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0px;
+    margin: 0 5px;
+}
+
+.footer span {
+    color: #b6b6b6;
+    font-size: 8pt;
+    cursor: default;
+}
+

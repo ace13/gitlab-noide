@@ -4,7 +4,9 @@
   "description": "Wrap NoIDE instances in containers from GitLab projects",
   "main": "index.js",
   "scripts": {
-    "test": "npm run lint"
+    "start": "node index.js",
+    "build:client:js": "browserify client/index.js -o public/js/index.js -d",
+    "build": "npm run build:client:js"
   },
   "repository": {
     "type": "git",
@@ -19,12 +21,18 @@
   "license": "MIT",
   "dependencies": {
     "body-parser": "^1.16.0",
+    "bootstrap": "^3.3.7",
+    "browserify": "^14.0.0",
     "cookie-parser": "^1.4.3",
     "express": "^4.14.0",
+    "express-handlebars": "^3.0.0",
     "express-session": "^1.14.2",
     "gitlab": "^1.7.1",
+    "handlebars": "^4.0.6",
     "http-proxy-middleware": "^0.17.3",
+    "jquery": "^3.1.1",
     "passport": "^0.3.2",
-    "passport-gitlab2": "^2.2.0"
+    "passport-gitlab2": "^2.2.0",
+    "watchify": "^3.9.0"
   }
 }
