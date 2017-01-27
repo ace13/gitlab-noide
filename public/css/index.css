@@ -1,16 +1,4 @@
 
-.navbar-top {
-    min-height: 30px;
-}
-.navbar-top .navbar-brand {
-    padding: 5px;
-    height: 30px;
-}
-
-body {
-    padding-top: 45px;
-}
-
 .footer {
     position: absolute;
     bottom: 0px;
