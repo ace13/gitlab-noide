@@ -122,8 +122,22 @@ app.get('/auth/gitlab/callback',
 app.get('/projects',
     ensureLogin('/auth'),
     function(req, res) {
+        var gitlab = require('gitlab')({
+            url: config.baseURL,
+            oauth_token: req.user.token,
+        });
     
-});
+        gitlab.projects.all(function(p) {
+            console.log("Discovered " + p.length + " projects for user " + req.user.username);
+
+            res.render('projects', {
+                meta: meta,
+                user: req.user,
+                projects: p
+            });
+        });
+    }
+);
 
 
 app.get('/', function(req, res) {

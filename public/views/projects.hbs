@@ -1,0 +1,58 @@
+<div class="row">
+    <div class="col-xs-12 col-md-6">
+        <h1>User Projects:</h1>
+    </div>
+    <div class="col-xs-12 col-md-6">
+        <input class="form-control mt-2" type="text" id="filterBox"/>
+    </div>
+</div>
+<div class="row">
+{{#each projects}}
+    <div class="col-xs-12 col-sm-6 col-lg-4 col-xl-3 py-3">
+        <div class="card" id="{{ path_with_namespace }}">
+            <div class="card-block">
+                <h4 class="card-title">{{ path_with_namespace }}</h4>
+                <p class="card-text">{{ description }}</p>
+
+                <small class="card-text text-muted float-left">Last updated {{ last_activity_at }}</small>
+                <div class="btn-group-vertical" style="position:absolute;bottom:0.5rem;right:0.5rem;">
+                    <a href="#" class="btn btn-secondary btn-sm" title="Change settings"><i class="fa fa-cog" aria-hidden="true"></i></a>
+                    <a href="#" class="btn btn-primary btn-sm" title="Launch noide"><i class="fa fa-terminal" aria-hidden="true"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+{{/each}}
+</div>
+
+<script type="application/javascript">
+$(document).ready(function() {
+    $('.card').hover(function() {
+        $(this).addClass('card-outline-primary');
+    }, function() {
+        $(this).removeClass('card-outline-primary');
+    });
+
+    $('.card .btn').on('click', function() {
+        var project = $(this).parents('.card').attr('id');
+        console.log("Pressed a button on project " + project);
+    });
+
+    var filter = function(obj) {
+        setTimeout(function() {
+            var text = $(obj.target).val();
+
+            var cards = $('.card').parent();
+            var toShow = $('.card').filter(function(id, card) {
+                return card.id.toLowerCase().indexOf(text.toLowerCase()) >= 0;
+            }).parent();
+
+            cards.show();
+            cards.not(toShow).hide();
+        }, 0);
+    };
+
+    $('#filterBox').on('keypress', filter);
+        
+});
+</script>

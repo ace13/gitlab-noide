@@ -1,38 +1,40 @@
-<nav class="navbar navbar-default navbar-top navbar-fixed-top">
-    <div class="container-fluid">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="#">
-                <img alt="B" src="">
-            </a>
+<nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" arial-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <a class="navbar-brand" href="#">
+        <img alt="B" src="">
+    </a>
+
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+{{#if user}}
+        <ul class="navbar-nav navbar-right ml-auto" title="Logged in as {{user.displayName}}">
+            <li class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" id="userDropdownLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <img src="{{user.avatarUrl}}" alt="{{user.username}}" width="25" height="25"/>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdownLink">
+                    <a href="/projects" class="dropdown-item"><i class="fa fa-fw fa-list"></i> Projects</a>
+                    <a href="/settings" class="dropdown-item"><i class="fa fa-fw fa-gears"></i> Settings</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="/auth/logout" class="dropdown-item"><i class="fa fa-fw fa-sign-out"></i> Logout</a>
+                </div>
+            </li>
+        </ul>
+{{else}}
+        <div class="navbar-right" style="margin-right: 0px">
+            <a href="/auth" class="btn btn-primary navbar-btn" role="button">Login</a>
         </div>
-        {{#if user}}
-            <ul class="nav navbar-nav navbar-right" title="Logged in as {{user.displayName}}">
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                        <img src="{{user.avatarUrl}}" alt="{{user.username}}" width="25" height="25"/><span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#">Action</a></li>
-                        <li><a href="#">Action</a></li>
-                        <li role="separator" class="divider"></li>
-                        <li><a href="/auth/logout">Logout</a></li>
-                    </ul>
-                </li>
-            </ul>
-        {{else}}
-            <div class="navbar-right" style="margin-right: 0px">
-                <a href="/auth" class="btn btn-primary navbar-btn" role="button">Login</a>
-            </div>
-        {{/if}}
+{{/if}}
     </div>
 
     <script type="application/javascript">
         (function() {
             function repadBody() {
-                jQuery('body').css('padding-top', jQuery('.navbar:first').height() + 10);
+                $('body').css('padding-top', $('.navbar:first').outerHeight() + 10);
             };
 
-            jQuery(window)
+            $(window)
                 .on('resize', repadBody)
                 .on('load', repadBody);
         })();
