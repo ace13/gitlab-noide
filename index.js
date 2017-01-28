@@ -1,5 +1,6 @@
 'use strict';
 
+var console    = require('console');
 var fs         = require('fs');
 var browserify = require('browserify');
 var watchify   = require('watchify');
@@ -25,9 +26,12 @@ function bundle() {
 var express  = require('express');
 var exphbs   = require('express-handlebars');
 var passport = require('passport');
-var gitlab   = require('gitlab');
+var refresh  = require('passport-oauth2-refresh');
+var ensureLogin = require('connect-ensure-login').ensureLoggedIn;
+var ensureLogout = require('connect-ensure-login').ensureLoggedOut;
 var GitLabStrategy = require('passport-gitlab2').Strategy;
 
+var merge  = require('merge');
 var config = require('./config/config.json').gitlab;
 var strategy = new GitLabStrategy(
     {
@@ -37,24 +41,30 @@ var strategy = new GitLabStrategy(
         baseURL: config.baseURL,
     },
     function(accessToken, refreshToken, profile, cb) {
-        var user = profile.merge({
-            token: accessToken
+        var user = merge(profile, {
+            token: accessToken,
+            refresh: refreshToken
         });
 
-        return cb(err, profile);
+        return cb(null, user);
     }
 );
 passport.use(strategy);
+refresh.use(strategy);
+
+var tokenStore = {};
 
 passport.serializeUser(function(user, cb) {
-    cb(null, user.accessToken);
+    tokenStore[user.id] = user;
+    cb(null, user.id);
 });
-passport.deserializeUser(function(token, cb) {
-    var user = { token: token };
-    strategy.userProfile(token, function(err, data) {
-        user.merge(data);
-    });
-    cb(null, user);
+passport.deserializeUser(function(id, cb) {
+    var user = tokenStore[id];
+    if (user) {
+        cb(null, user);
+    } else {
+        cb(null, false);
+    }
 });
 
 var app = express();
@@ -85,18 +95,41 @@ app.use(passport.session());
 
 app.use('/static', express.static('public'));
 
+app.get('/auth',
+    ensureLogout('/'),
+    function(req, res) {
+        res.redirect('/auth/gitlab');
+});
+app.get('/auth/logout', function(req, res) {
+    delete tokenStore[req.user.id];
+    req.logout();
+    delete req.session;
+
+    return res.redirect('/');
+});
+
 app.get('/auth/gitlab', passport.authenticate('gitlab'));
 app.get('/auth/gitlab/callback',
     passport.authenticate('gitlab', {
         failureRedirect: '/'
     }),
     function(req, res) {
-        res.redirect('/');
+        console.log("Logged in as " + req.user.username);
+        return res.redirect('/');
     }
 )
+
+app.get('/projects',
+    ensureLogin('/auth'),
+    function(req, res) {
+    
+});
+
+
 app.get('/', function(req, res) {
     res.render('home', {
-        meta: meta
+        meta: meta,
+        user: req.user
     });
 });
 
