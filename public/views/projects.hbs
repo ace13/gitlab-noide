@@ -3,18 +3,36 @@
         <h1>User Projects:</h1>
     </div>
     <div class="col-xs-12 col-md-6">
-        <input class="form-control mt-2" type="text" id="filterBox"/>
+        <div class="input-group mt-2">
+            <input class="form-control" type="text" id="filterBox" placeholder="Filter by name..."/>
+            <span class="input-group-btn">
+                <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Sort by">
+                    <i class="fa fa-align-left"></i>
+                </button>
+                <div class="dropdown-menu" id="orderMenu">
+                    <small class="dropdown-header text-muted">Order by</small>
+                    <a class="dropdown-item selected" href="#" data-type="order" data-sort="name"><i class="fa fa-fw fa-check"></i> Name</a>
+                    <a class="dropdown-item" href="#" data-type="order" data-sort="lastActivityAt" data-sort-dir="desc"><i class="fa fa-fw"></i> Last updated</a>
+                    <a class="dropdown-item" href="#" data-type="order" data-sort="lastActivityAt" data-sort-dir="asc"><i class="fa fa-fw"></i> Oldest updated</a>
+                    <a class="dropdown-item" href="#" data-type="order" data-sort="createdAt" data-sort-dir="desc"><i class="fa fa-fw"></i> Last created</a>
+                    <a class="dropdown-item" href="#" data-type="order" data-sort="createdAt" data-sort-dir="asc"><i class="fa fa-fw"></i> Oldest created</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item selected" href="#" data-type="filter" data-filter="namespaceId" data-filter-is="{{ user.id }}"><i class="fa fa-fw fa-check"></i> Personal projects</a>
+                    <a class="dropdown-item" href="#" data-type="filter"><i class="fa fa-fw"></i> All projects</a>
+                </div>
+            </span>
+        </div>
     </div>
 </div>
-<div class="row">
+<div class="row" id="projectList">
 {{#each projects}}
     <div class="col-xs-12 col-sm-6 col-lg-4 col-xl-3 py-3">
-        <div class="card" id="{{ path_with_namespace }}">
+        <div class="card" data-project="{{ path_with_namespace }}" data-namespace-id="{{ namespace.id }}" data-name="{{ name }}" data-last-activity-at="{{ last_activity_at }}" data-created-at="{{ created_at }}">
             <div class="card-block">
                 <h4 class="card-title">{{ path_with_namespace }}</h4>
                 <p class="card-text">{{ description }}</p>
 
-                <small class="card-text text-muted float-left">Last updated {{ last_activity_at }}</small>
+                <small class="card-text text-muted float-left">Last updated {{ relTime last_activity_at }}</small>
                 <div class="btn-group-vertical" style="position:absolute;bottom:0.5rem;right:0.5rem;">
                     <a href="#" class="btn btn-secondary btn-sm" title="Change settings"><i class="fa fa-cog" aria-hidden="true"></i></a>
                     <a href="#" class="btn btn-primary btn-sm" title="Launch noide"><i class="fa fa-terminal" aria-hidden="true"></i></a>
@@ -34,25 +52,76 @@ $(document).ready(function() {
     });
 
     $('.card .btn').on('click', function() {
-        var project = $(this).parents('.card').attr('id');
+        var project = $(this).parents('.card').data('project');
         console.log("Pressed a button on project " + project);
     });
 
-    var filter = function(obj) {
+    var sort = function() {
         setTimeout(function() {
-            var text = $(obj.target).val();
+            var projects = $('.card').parent();
+            var sorter = $('.selected[data-type="order"]:first');
+
+            var sortField = sorter.data('sort');
+            var sortDir = sorter.data('sortDir') || 'asc';
+
+            projects.sort(function(a, b) {
+                var aD = $(a).children('.card').data(sortField).toLowerCase();
+                var bD = $(b).children('.card').data(sortField).toLowerCase();
+
+                if (sortDir == 'desc') {
+                    return aD < bD;
+                } else {
+                    return aD > bD;
+                }
+            }).appendTo('#projectList');
+        }, 0);
+    };
+    var filter = function() {
+        setTimeout(function() {
+            var text = $('#filterBox').val();
+
+            var filters = $('.selected[data-type="filter"]');
 
             var cards = $('.card').parent();
             var toShow = $('.card').filter(function(id, card) {
-                return card.id.toLowerCase().indexOf(text.toLowerCase()) >= 0;
+                for (var i = 0; i < filters.length; ++i)
+                {
+                    var filter = $(filters[i]);
+
+                    var field = filter.data('filter');
+                    if (!field) { continue; }
+                    var wanted = filter.data('filterIs');
+
+                    if ($(card).data(field) != wanted) { return false; }
+                }
+
+                return $(card).data('project').toLowerCase().indexOf(text.toLowerCase()) >= 0;
             }).parent();
 
             cards.show();
             cards.not(toShow).hide();
+
+            sort();
         }, 0);
     };
 
     $('#filterBox').on('keypress', filter);
         
+    $('#orderMenu a').on('click', function() {
+        var old = $('#orderMenu .selected[data-type="' + $(this).data('type') + '"]');
+
+        old.removeClass('selected')
+            .children('i').removeClass('fa-check');
+        $(this).addClass('selected')
+            .children('i').addClass('fa-check');
+
+        if ($(this).data('type') == 'filter') {
+            filter();
+        } else {
+            sort();
+        }
+    });
+
+    filter();
 });
 </script>

@@ -31,6 +31,8 @@ var ensureLogin = require('connect-ensure-login').ensureLoggedIn;
 var ensureLogout = require('connect-ensure-login').ensureLoggedOut;
 var GitLabStrategy = require('passport-gitlab2').Strategy;
 
+var moment = require('moment');
+
 var merge  = require('merge');
 var config = require('./config/config.json').gitlab;
 var strategy = new GitLabStrategy(
@@ -80,6 +82,12 @@ var hbs = exphbs.create({
     layoutsDir: 'public/views/layouts',
     partialsDir: 'public/views/partials',
     defaultLayout: 'main',
+
+    helpers: {
+        relTime: function(timeStr) {
+            return moment(timeStr).fromNow();
+        }
+    },
 });
 
 app.engine('.hbs', hbs.engine);
