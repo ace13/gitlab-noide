@@ -30,6 +30,7 @@ var refresh  = require('passport-oauth2-refresh');
 var ensureLogin = require('connect-ensure-login').ensureLoggedIn;
 var ensureLogout = require('connect-ensure-login').ensureLoggedOut;
 var GitLabStrategy = require('passport-gitlab2').Strategy;
+var proxy = require('http-proxy-middleware');
 
 var moment = require('moment');
 
@@ -55,6 +56,8 @@ passport.use(strategy);
 refresh.use(strategy);
 
 var tokenStore = {};
+var projectStore = {};
+var routeStore = {};
 
 passport.serializeUser(function(user, cb) {
     tokenStore[user.id] = user;
@@ -95,13 +98,24 @@ app.set('view engine', '.hbs');
 app.set('views', 'public/views');
 
 app.use(require('cookie-parser')());
-app.use(require('body-parser').urlencoded({ extended: true }));
+//app.use(require('body-parser').urlencoded({ extended: true }));
 app.use(require('express-session')({ secret: 'asdfasdfasdf', resave: false, saveUninitialized: false }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/static', express.static('public'));
+app.use('/proxy/:projectId', ensureLogin, proxy('/proxy', {
+    ws: true,
+    pathRewrite: {
+        '^/proxy': ''
+    },
+    target: 'http://google.com',
+    router: function(req) {
+        console.log("Proxying ", req);
+        return routeStore[req.user.id] || 'http://localhost:3000/'; 
+    }
+}));
 
 app.get('/auth',
     ensureLogout('/'),
@@ -147,6 +161,58 @@ app.get('/projects',
     }
 );
 
+app.get('/project/:projectId',
+    ensureLogin('/auth'),
+    function(req, res) {
+        var gitlab = require('gitlab')({
+            url: config.baseURL,
+            oauth_token: req.user.token,
+        });
+    
+        console.log('Starting noide', req.params); 
+        gitlab.projects.show(req.params.projectId, function(p) {
+            console.log('Project is;', p);
+            res.render('project', {
+                meta: meta,
+                user: req.user,
+                project: p,
+                settings: projectStore[p.id] || {}
+            });
+        });
+    }
+);
+app.get('/settings/:projectId',
+    ensureLogin('/auth'),
+    function(req, res) {
+        var gitlab = require('gitlab')({
+            url: config.baseURL,
+            oauth_token: req.user.token,
+        });
+    
+        gitlab.projects.show(req.params.projectId, function(p) {
+            res.render('settings', {
+                meta: meta,
+                user: req.user,
+                project: p,
+                settings: projectStore[p.id] || {}
+            });
+        });
+    }
+);
+app.get('/settings/:projectId/json',
+    ensureLogin('/auth'),
+    function(req, res) {
+        res.json(projectStore[req.params.projectId]);
+    }
+);
+app.post('/settings/:projectId/json',
+    ensureLogin('/auth'),
+    require('body-parser').json(),
+    function(req, res) {
+        if (!req.body) return res.sendStatus(400);
+        projectStore[req.params.projectId] = req.body;
+    }
+);
 
 app.get('/', function(req, res) {
     res.render('home', {

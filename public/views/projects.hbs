@@ -1,8 +1,8 @@
 <div class="row">
-    <div class="col-xs-12 col-md-6">
+    <div class="col-12 col-md-6">
         <h1>User Projects:</h1>
     </div>
-    <div class="col-xs-12 col-md-6">
+    <div class="col-12 col-md-6">
         <div class="input-group mt-2">
             <input class="form-control" type="text" id="filterBox" placeholder="Filter by name..."/>
             <span class="input-group-btn">
@@ -26,39 +26,77 @@
 </div>
 <div class="row" id="projectList">
 {{#each projects}}
-    <div class="col-xs-12 col-sm-6 col-lg-4 col-xl-3 py-3">
-        <div class="card" data-project="{{ path_with_namespace }}" data-namespace-id="{{ namespace.id }}" data-name="{{ name }}" data-last-activity-at="{{ last_activity_at }}" data-created-at="{{ created_at }}">
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3 py-3">
+        <div class="card" data-project="{{ path_with_namespace }}" data-project-id="{{ id }}" data-namespace-id="{{ namespace.id }}" data-name="{{ name }}" data-last-activity-at="{{ last_activity_at }}" data-created-at="{{ created_at }}">
             <div class="card-block">
                 <h4 class="card-title">{{ path_with_namespace }}</h4>
                 <p class="card-text">{{ description }}</p>
 
                 <small class="card-text text-muted float-left">Last updated {{ relTime last_activity_at }}</small>
                 <div class="btn-group-vertical" style="position:absolute;bottom:0.5rem;right:0.5rem;">
-                    <a href="#" class="btn btn-secondary btn-sm" title="Change settings"><i class="fa fa-cog" aria-hidden="true"></i></a>
-                    <a href="#" class="btn btn-primary btn-sm" title="Launch noide"><i class="fa fa-terminal" aria-hidden="true"></i></a>
+                    <a href="#" class="btn btn-secondary btn-sm" data-button="options" title="Change settings"><i class="fa fa-cog" aria-hidden="true"></i></a>
+                    <a href="#" class="btn btn-primary btn-sm" data-button="launch" title="Launch noide"><i class="fa fa-terminal" aria-hidden="true"></i></a>
                 </div>
             </div>
         </div>
     </div>
 {{/each}}
+    <div class="col-12 pt-3" style="display: none" id="projectListEmpty">
+        <div class="card card-warning card-inverse text-center">
+            <div class="card-block">
+                <h4 class="card-title">No projects found</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Options</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="application/javascript">
 $(document).ready(function() {
-    $('.card').hover(function() {
+    $('.card[data-project]').hover(function() {
         $(this).addClass('card-outline-primary');
     }, function() {
         $(this).removeClass('card-outline-primary');
     });
 
     $('.card .btn').on('click', function() {
-        var project = $(this).parents('.card').data('project');
-        console.log("Pressed a button on project " + project);
+        var self = $(this);
+        self.addClass('disabled');
+
+        var card = $(this).parents('.card');
+        var project = card.data('project');
+        console.log("Pressed the " + $(this).data('button') + " button on project " + project);
+
+        if ($(this).data('button') == 'options') {
+            $.ajax('/settings/' + card.data('projectId') + '/json')
+                .done(function(data) {
+                    console.log(data);
+
+
+                })
+                .always(function() {
+                    self.removeClass('disabled');
+                });
+        }
     });
 
     var sort = function() {
         setTimeout(function() {
-            var projects = $('.card').parent();
+            var projects = $('.card[data-project]').parent();
             var sorter = $('.selected[data-type="order"]:first');
 
             var sortField = sorter.data('sort');
@@ -82,8 +120,8 @@ $(document).ready(function() {
 
             var filters = $('.selected[data-type="filter"]');
 
-            var cards = $('.card').parent();
-            var toShow = $('.card').filter(function(id, card) {
+            var cards = $('.card[data-project]');
+            var toShow = cards.filter(function(id, card) {
                 for (var i = 0; i < filters.length; ++i)
                 {
                     var filter = $(filters[i]);
@@ -98,10 +136,15 @@ $(document).ready(function() {
                 return $(card).data('project').toLowerCase().indexOf(text.toLowerCase()) >= 0;
             }).parent();
 
-            cards.show();
-            cards.not(toShow).hide();
+            cards.parent().show()
+                .not(toShow).hide();
 
-            sort();
+            if (toShow.length == 0) {
+                $('#projectListEmpty').show();
+            } else {
+                $('#projectListEmpty').hide();
+                sort();
+            }
         }, 0);
     };
 
