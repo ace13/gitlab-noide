@@ -1,11 +1,12 @@
 {
-  "gitlab": {
+  "source": {
+    "type":         "gitlab",
     "clientID":     "00000000000000000",
     "clientSecret": "00000000000000000",
     "callbackURL":  "http://localhost:3000/auth/gitlab/callback",
     "baseURL":      "https://gitlab.com"
   },
-  "provider": {
+  "backend": {
     "type":  "docker",
     "image": "ubuntu:latest",
     "host":  "localhost"

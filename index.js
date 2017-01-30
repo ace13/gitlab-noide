@@ -26,51 +26,18 @@ function bundle() {
 var express  = require('express');
 var exphbs   = require('express-handlebars');
 var passport = require('passport');
-var refresh  = require('passport-oauth2-refresh');
 var ensureLogin = require('connect-ensure-login').ensureLoggedIn;
 var ensureLogout = require('connect-ensure-login').ensureLoggedOut;
-var GitLabStrategy = require('passport-gitlab2').Strategy;
 var proxy = require('http-proxy-middleware');
-
 var moment = require('moment');
 
-var merge  = require('merge');
-var config = require('./config/config.json').gitlab;
-var strategy = new GitLabStrategy(
-    {
-        clientID: config.clientID,
-        clientSecret: config.clientSecret,
-        callbackURL: config.callbackURL,
-        baseURL: config.baseURL,
-    },
-    function(accessToken, refreshToken, profile, cb) {
-        var user = merge(profile, {
-            token: accessToken,
-            refresh: refreshToken
-        });
+var config = require('./config/config.json');
 
-        return cb(null, user);
-    }
-);
-passport.use(strategy);
-refresh.use(strategy);
+var source = require('./server/source')(config.source);
+source.use(passport);
 
-var tokenStore = {};
 var projectStore = {};
 var routeStore = {};
-
-passport.serializeUser(function(user, cb) {
-    tokenStore[user.id] = user;
-    cb(null, user.id);
-});
-passport.deserializeUser(function(id, cb) {
-    var user = tokenStore[id];
-    if (user) {
-        cb(null, user);
-    } else {
-        cb(null, false);
-    }
-});
 
 var app = express();
 var meta = {
@@ -105,7 +72,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/static', express.static('public'));
-app.use('/proxy/:projectId', ensureLogin, proxy('/proxy', {
+app.use('/proxy/:projectHash', proxy({
     ws: true,
     pathRewrite: {
         '^/proxy': ''
@@ -130,9 +97,9 @@ app.get('/auth/logout', function(req, res) {
     return res.redirect('/');
 });
 
-app.get('/auth/gitlab', passport.authenticate('gitlab'));
+app.get('/auth/gitlab', source.authenticate(passport));
 app.get('/auth/gitlab/callback',
-    passport.authenticate('gitlab', {
+    source.authenticate(passport, {
         failureRedirect: '/'
     }),
     function(req, res) {
