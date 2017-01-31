@@ -6,6 +6,7 @@ var ensureLogout = require('connect-ensure-login').ensureLoggedOut;
 var GitLabStrategy = require('passport-gitlab2').Strategy;
 var merge  = require('merge');
 
+var Promise = require('promise');
 
 function Gitlab(config) {
     this._config = config;
@@ -37,6 +38,7 @@ Gitlab.prototype.authenticate = function(passport, options) {
 Gitlab.prototype.use = function(passport) {
     var self = this;
     passport.use(this._strategy);
+
     passport.serializeUser(function(user, cb) {
         self.tokenStore[user.id] = user;
         cb(null, user.id);
@@ -58,46 +60,61 @@ Gitlab.prototype.api = function(user) {
         this._token = user._token;
         this._refresh = user._refresh;
 
-        this._refreshApi = function() {
-            return require('node-gitlab')({
+        this._createApi = function() {
+            return require('node-gitlab').createPromise({
                 api: self._config.baseURL + '/api/v3',
-                oauth_token: this._token,
+                accessToken: this._token,
             });
         };
-        this._api = this._refreshApi();
+        this._refreshToken = function() {
+            return new Promise(function(resolve, reject) {
+                refresh.requestNewAccessToken('gitlab', this._refresh, function(err, access, refresh) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        this._token = user._token = access;
+                        this._refresh = user._refresh = refresh;
+
+                        this._api = this._createApi();
+
+                        resolve();
+                    }
+                });
+            });
+        };
+
+        this._api = this._createApi();
     }
 
-    /*
-    Object.defineProperty(GitlabApi, 'projects' function(filter, cb) {
-        if (!cb && typeof(filter) === 'function') {
-            cb = filter;
-            filter = null;
-        }
-
+    Object.defineProperty(GitlabApi, 'projects', function() {
         if (this._refreshNeeded) {
-            refresh.requestNewAccessToken('gitlab', this._refresh, function(err, access, refresh) {
-                this._token = access;
-                this._refresh = refresh;
-
-                this._api = this._refreshApi();
-
-                this._refreshNeeded = false;
-                this.projects(filter, cb);
-            });
-            return;
+            return this._refreshToken()
+                .then(function() { return this.projects; });
         }
 
-        this._api.projects.all(function(err, p) {
-            if (err) {
-                if (this._refreshNeeded) throw err;
-                this._refreshNeeded = true;
-                this.projects(filter, cb);
-            } else {
-                return cb(err, p);
-            }
+        return new Promise(function(resolve, reject) {
+            var attempts = 5;
+            var attempt = function() {
+                return this._api.projects.list({})
+                    .then(function(p) { resolve(p); });
+            };
+            var reattempt = function(err)  {
+                if (attempts-- > 0) {
+                    return this._refreshToken().then(function() {
+                        return attempt().err(function (_err) {
+                            return reattempt(_err);
+                        });
+                    }).err(function(_err) {
+                        return reject(_err);
+                    });
+                } else {
+                    return reject(err);
+                }
+            };
+
+            return reattempt();
         });
     };
-    */
 
     return new GitlabApi(user);
 };

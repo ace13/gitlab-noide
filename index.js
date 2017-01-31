@@ -106,7 +106,7 @@ app.get('/auth/gitlab/callback',
         console.log("Logged in as " + req.user.username);
         return res.redirect('/');
     }
-)
+);
 
 app.get('/projects',
     ensureLogin('/auth'),
