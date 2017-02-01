@@ -80,7 +80,7 @@ app.use('/proxy/:projectHash', proxy({
     target: 'http://google.com',
     router: function(req) {
         console.log("Proxying ", req);
-        return routeStore[req.user.id] || 'http://localhost:3000/'; 
+        return routeStore[req.user.id] || 'http://localhost:3000/';
     }
 }));
 
@@ -88,14 +88,14 @@ app.get('/auth',
     ensureLogout('/'),
     function(req, res) {
         res.redirect('/auth/gitlab');
-});
-app.get('/auth/logout', function(req, res) {
-    delete tokenStore[req.user.id];
-    req.logout();
-    delete req.session;
-
-    return res.redirect('/');
-});
+    }
+);
+app.get('/auth/logout',
+    source.deauthenticate,
+    function(req, res) {
+        return res.redirect('/');
+    }
+);
 
 app.get('/auth/gitlab', source.authenticate(passport));
 app.get('/auth/gitlab/callback',
@@ -115,7 +115,7 @@ app.get('/projects',
             url: config.baseURL,
             oauth_token: req.user.token,
         });
-    
+
         gitlab.projects.all(function(p) {
             console.log("Discovered " + p.length + " projects for user " + req.user.username);
 
@@ -135,8 +135,8 @@ app.get('/project/:projectId',
             url: config.baseURL,
             oauth_token: req.user.token,
         });
-    
-        console.log('Starting noide', req.params); 
+
+        console.log('Starting noide', req.params);
         gitlab.projects.show(req.params.projectId, function(p) {
             console.log('Project is;', p);
             res.render('project', {
@@ -155,7 +155,7 @@ app.get('/settings/:projectId',
             url: config.baseURL,
             oauth_token: req.user.token,
         });
-    
+
         gitlab.projects.show(req.params.projectId, function(p) {
             res.render('settings', {
                 meta: meta,

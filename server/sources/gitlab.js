@@ -34,6 +34,11 @@ function Gitlab(config) {
 Gitlab.prototype.authenticate = function(passport, options) {
     passport.authenticate('gitlab', options);
 };
+Gitlab.prototype.deauthenticate = function(req, res) {
+    delete this.tokenStore[req.user.id];
+    req.logout();
+    delete req.session;
+};
 
 Gitlab.prototype.use = function(passport) {
     var self = this;
@@ -114,7 +119,7 @@ Gitlab.prototype.api = function(user) {
 
             return reattempt();
         });
-    };
+    });
 
     return new GitlabApi(user);
 };
