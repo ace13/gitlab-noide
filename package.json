@@ -1,46 +1,56 @@
 {
   "name": "gitlab-noide",
-  "version": "1.0.0",
-  "description": "Wrap NoIDE instances in containers from GitLab projects",
-  "main": "index.js",
+  "description": "Wrapper for dynamically launching NoIDE instances against Gitlab projects",
+  "author": "Alexander Olofsson <ace@haxalot.com>",
   "scripts": {
-    "start": "node index.js",
-    "build:client:js": "browserify client/index.js -o public/js/index.js -d",
-    "build": "npm run build:client:js"
+    "watchify": "watchify -vd -p browserify-hmr -e client/main.js -o public/js/index.js",
+    "serve": "node index.js",
+    "dev": "npm-run-all --parallel watchify serve",
+    "build": "cross-env NODE_ENV=production browserify -g envify client/main.js | uglifyjs -c warnings=false -m > public/js/index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://gitlab.it.liu.se/aleol57/gitlab-noide.git"
-  },
-  "keywords": [
-    "noide",
-    "express",
-    "gitlab"
-  ],
-  "author": "Alexander Olofsson <alexander.olofsson@liu.se>",
-  "license": "MIT",
   "dependencies": {
     "body-parser": "^1.16.0",
-    "bootstrap": "^4.0.0-alpha.6",
-    "browserify": "^14.0.0",
+    "bootstrap": "^4.0.0-beta.2",
     "connect-ensure-login": "^0.1.1",
     "cookie-parser": "^1.4.3",
-    "express": "^4.14.1",
-    "express-handlebars": "^3.0.0",
-    "express-session": "^1.15.0",
+    "express-promise-router": "^2.0.0",
+    "express-session": "^1.15.6",
     "font-awesome": "^4.7.0",
-    "handlebars": "^4.0.6",
+    "gitlab": "^1.7.1",
+    "jquery": "^3.2.1",
     "http-proxy-middleware": "^0.17.3",
-    "jquery": "^3.1.1",
-    "merge": "^1.2.0",
     "moment": "^2.17.1",
-    "node-gitlab": "^1.6.0",
-    "passport": "^0.3.2",
-    "passport-gitlab2": "^2.2.0",
+    "passport": "^0.4.0",
+    "passport-gitlab2": "^3.0.0",
     "passport-oauth2-refresh": "^1.0.0",
-    "promise": "^7.1.1",
-    "uglifyify": "^3.0.4",
-    "uglifyjs": "^2.4.10",
-    "watchify": "^3.9.0"
+    "popper.js": "^1.12.6"
+  },
+  "devDependencies": {
+    "babel-core": "^6.0.0",
+    "babel-preset-es2015": "^6.0.0",
+    "babelify": "^7.2.0",
+    "browserify": "^13.0.1",
+    "browserify-hmr": "^0.3.1",
+    "cross-env": "^1.0.6",
+    "envify": "^3.4.1",
+    "http-server": "^0.9.0",
+    "npm-run-all": "^2.1.2",
+    "uglify-js": "^2.5.0",
+    "vue": "^2.0.1",
+    "vue-model": "^2.0.7",
+    "vueify": "^9.1.0",
+    "watchify": "^3.4.0"
+  },
+  "browserify": {
+    "transform": [
+      "vueify",
+      "babelify"
+    ]
+  },
+  "browser": {
+    "bootstrap": "bootstrap/dist/js/bootstrap.min.js",
+    "jquery": "jquery/dist/jquery.min.js",
+    "popper": "popper.js/dist/umd/popper.min.js",
+    "vue": "vue/dist/vue.common.js"
   }
 }
