@@ -33,7 +33,7 @@
     </div>
     <div class="row" id="projectList">
       <transition-group name="flip-list" v-if="projects">
-        <project-card v-for="project in projects" v-bind:project-id="project" :key="project"/>
+        <project-card v-for="project in shownProjects" v-bind:project-id="project" :key="project"/>
       </transition-group>
       <div class="col-12 pt-3" v-else>
         <div class="card card-warning card-inverse text-center">
@@ -52,8 +52,10 @@ export default {
 
   data() {
     return {
-      projects: { },
-      filter: { },
+      projects: [],
+      shownProjects: []
+      filters: {
+      },
       sort: {
         name: 'asc'
       }
@@ -62,13 +64,46 @@ export default {
 
   created () {
     // TODO: retrieve projects with axios
+
+    // this.filters.namespace_id = App.user.id;
+    // updateSort();
+    // updateFilter();
   },
 
   methods: {
-    updateSort(ev) {
+    updateSort() {
+      setTimeout(() => {
+        projects.sort((a, b) => {
+          var field = Object.keys(sort)[0];
+
+          var aD = a[field].toLowerCase();
+          var bD = b[field].toLowerCase();
+
+          if (this.sort[field] == 'desc') {
+            return aD < bD;
+          } else {
+            return bD < aD;
+          }
+        });
+
+        updateFilter();
+      }, 0);
     },
 
-    updateFilter(ev) {
+    updateFilter() {
+      setTimeout(() => {
+        this.shownProjects = this.projects.filter((project) => {
+          for (var filter in this.filters) {
+            var wanted = this.filters[filter];
+
+            if (typeof(wanted) === 'object') {
+              return project[filter].match(wanted);
+            } else {
+              return project[filter] == this.filters[filter];
+            }
+          }
+        });
+      }, 0);
     }
   },
 
@@ -102,6 +137,7 @@ export default {
       update: (el, binding) => {
         $(el).find('[data-key]').each(function() {
           $(this).removeClass('selected');
+          $(this).find('i').removeClass('fa-check');
 
           if (binding.arg === 'kv') {
             var key = $(this).data.key;
@@ -109,11 +145,13 @@ export default {
 
             if (binding.value[key] === value) {
               $(this).addClass('selected');
+              $(this).find('i').addClass('fa-check');
             }
           } else {
             var value = $(this).data.value;
             if (v === binding.value) {
               $(this).addClass('selected');
+              $(this).find('i').addClass('fa-check');
             }
           }
         });
