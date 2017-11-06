@@ -4,6 +4,8 @@ var config   = require('../config/config.json');
 var passport = require('passport');
 var router   = require('express-promise-router')();
 
+var ensureLogout = require('connect-ensure-login').ensureLoggedOut;
+
 var source = null;
 
 app.get('/',
