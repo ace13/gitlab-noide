@@ -5,6 +5,12 @@
     </div>
 
   <div class="container my-4" id="app">
+    <div v-if="user">
+      Signed in as <a v-bind:href="user.web_url"><img class="rounded-circle" v-bind:src="user.avatar_url">{{ user.name }}</img></a>
+    </div>
+    <div v-else>
+      <a href="/auth/login"><i class="fa fa-sign-in"></i> Sign in</a>
+    </div>
   </div>
 
   <div id="footer" class="position-static container text-center">
@@ -13,12 +19,20 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'app',
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App'
+      user: {}
     }
+  },
+
+  created () {
+    axios.get('/auth/user').then((u) => {
+      this.user = u;
+    });
   },
 
   filters: {
@@ -30,35 +44,4 @@ export default {
 </script>
 
 <style scoped>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-
-img {
-  width: 200px;
-  height: 200px;
-}
-
-h1, h2 {
-  font-weight: normal;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-
-a {
-  color: #42b983;
-}
 </style>
