@@ -4,18 +4,18 @@ var config   = require('../config/config.json');
 var passport = require('passport');
 var router   = require('express-promise-router')();
 
-var ensureLogout = require('connect-ensure-login').ensureLoggedOut;
+var ensureLogin = require('connect-ensure-login').ensureLoggedIn;
 
 var source = null;
 
-app.get('/',
+router.get('/',
   ensureLogin('/auth/login'),
   function(req, res) {
     res.redirect('/');
   }
 );
 
-app.get('/user',
+router.get('/user',
   function(req, res) {
     if (req.user) {
       res.send(req.user);
@@ -24,25 +24,25 @@ app.get('/user',
     }
   }
 );
-app.delete('/user',
+router.delete('/user',
   function(req, res, next) {
     if (!req.user) {
       return res.status(204).json({ message: 'Already signed out' });
     }
-    next();
-  },
-  source.deauthenticate
+    source.deauthenticate();
+    res.status(200).send();
+  }
 );
 
-app.get('/logout',
-  source.deauthenticate,
+router.get('/logout',
   function(req, res) {
+    source.deauthenticate();
     return res.redirect('/');
   }
 );
 
-app.get('/login', source.authenticate(passport));
-app.get('/login/callback',
+router.get('/login', source.authenticate(passport));
+router.get('/login/callback',
   source.authenticate(passport, {
     failureRedirect: '/'
   }),
