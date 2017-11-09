@@ -10,7 +10,7 @@ var ensureLogin = require('connect-ensure-login').ensureLoggedIn;
 var projectStore = {};
 var source = null;
 
-app.get('/',
+router.get('/',
   ensureLogin('/auth'),
   function(req, res) {
     var gitlab = require('gitlab')({
@@ -30,7 +30,7 @@ app.get('/',
   }
 );
 
-app.get('/:projectId',
+router.get('/:projectId',
   ensureLogin('/auth'),
   function(req, res) {
     var gitlab = require('gitlab')({
@@ -51,28 +51,28 @@ app.get('/:projectId',
   }
 );
 
-app.get('/:projectId/proxy',
+router.get('/:projectId/proxy',
   ensureLogin('/auth'),
   function(req, res) {
     console.log('Get proxy');
     res.send();
   }
 );
-app.post('/:projectId/proxy',
+router.post('/:projectId/proxy',
   ensureLogin('/auth'),
   function(req, res) {
     console.log('Post proxy');
     res.send();
   }
 );
-app.put('/:projectId/proxy',
+router.put('/:projectId/proxy',
   ensureLogin('/auth'),
   function(req, res) {
     console.log('Put proxy');
     res.send();
   }
 );
-app.delete('/:projectId/proxy',
+router.delete('/:projectId/proxy',
   ensureLogin('/auth'),
   function(req, res) {
     console.log('Delete proxy');
@@ -80,7 +80,7 @@ app.delete('/:projectId/proxy',
   }
 );
 
-app.get('/:projectId/settings',
+router.get('/:projectId/settings',
   ensureLogin('/auth'),
   function(req, res) {
     var gitlab = require('gitlab')({
@@ -98,14 +98,14 @@ app.get('/:projectId/settings',
     });
   }
 );
-app.get('/:projectId/settings',
+router.get('/:projectId/settings',
   ensureLogin('/auth'),
   function(req, res) {
     res.json(projectStore[req.params.projectId]);
   }
 );
 
-app.post('/:projectId/settings',
+router.post('/:projectId/settings',
   ensureLogin('/auth'),
   require('body-parser').json(),
   function(req, res) {

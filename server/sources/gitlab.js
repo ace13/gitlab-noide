@@ -1,5 +1,6 @@
 'use strict';
 
+var passport = require('passport');
 var refresh  = require('passport-oauth2-refresh');
 var ensureLogin = require('connect-ensure-login').ensureLoggedIn;
 var ensureLogout = require('connect-ensure-login').ensureLoggedOut;
@@ -30,7 +31,7 @@ class Gitlab {
     refresh.use(this._strategy);
   }
 
-  authenticate(passport, options) {
+  authenticate(options) {
     passport.authenticate('gitlab', options);
   }
 
@@ -40,7 +41,7 @@ class Gitlab {
     delete req.session;
   }
 
-  use(passport) {
+  use() {
     var self = this;
     passport.use(this._strategy);
 
